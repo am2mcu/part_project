@@ -18,6 +18,7 @@ add_city_to_db() {
         echo "$city_name exists!"
     else
         echo $city_name >> $database_path
+        touch $cities_path/$city_name.txt
     fi
 }
 
@@ -29,9 +30,14 @@ delete_city_from_db() {
     local city_name=$1
     if grep -qi "\b$city_name\b" $database_path; then
         sed -i "/\b$city_name\b/Id" $database_path
+        rm $cities_path/$city_name.txt
     else
         echo "$city_name does not exist!"
     fi
+}
+
+update_cities_db() {
+    echo pass
 }
 
 print_usage() {
