@@ -23,7 +23,7 @@ while getopts ":a:ld:n:hu" flag; do
         # TODO
         ;;
     l)
-        # TODO
+        cat $database_path
         ;;
     d)
         # filename=$OPTARG
