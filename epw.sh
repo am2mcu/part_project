@@ -1,5 +1,4 @@
 #!/bin/bash
-# set -xv
 
 main_path=/opt/data/epweather
 cities_path=$main_path/db
@@ -71,7 +70,6 @@ while getopts ":a:ld:n:hu" flag; do
         update_cities_db
         ;;
     \?)
-        # Handle invalid options
         echo "Invalid option $OPTARG!"
         ;;
     :)
