@@ -25,6 +25,15 @@ list_cities() {
     cat $database_path
 }
 
+delete_city_from_db() {
+    local city_name=$1
+    if grep -qi "\b$city_name\b" $database_path; then
+        sed -i "/\b$city_name\b/Id" $database_path
+    else
+        echo "$city_name does not exist!"
+    fi
+}
+
 print_usage() {
     echo "epweather [-lhu] [CityName] [-a CityName] [-d CityName] [-n CityName]"
 }
@@ -40,8 +49,8 @@ while getopts ":a:ld:n:hu" flag; do
         list_cities
         ;;
     d)
-        # filename=$OPTARG
-        # TODO
+        city_name=$OPTARG
+        delete_city_from_db $city_name
         ;;
     n)
         city_name=$OPTARG
