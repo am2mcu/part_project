@@ -17,7 +17,7 @@ add_city_to_db() {
     if grep -qi "\b$city_name\b" $database_path; then
         echo "$city_name exists!"
     else
-        echo $city_name >> $database_path
+        echo $city_name >>$database_path
         touch $cities_path/$city_name.txt
     fi
 }
@@ -37,7 +37,9 @@ delete_city_from_db() {
 }
 
 update_cities_db() {
-    echo pass
+    while IFS='' read -r city_name; do
+        fetch_weather $city_name >>$cities_path/$city_name.txt
+    done <$database_path
 }
 
 print_usage() {
@@ -66,7 +68,7 @@ while getopts ":a:ld:n:hu" flag; do
         print_usage
         ;;
     u)
-        # TODO
+        update_cities_db
         ;;
     \?)
         # Handle invalid options
