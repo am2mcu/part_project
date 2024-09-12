@@ -21,6 +21,10 @@ add_city_to_db() {
     fi
 }
 
+list_cities() {
+    cat $database_path
+}
+
 print_usage() {
     echo "epweather [-lhu] [CityName] [-a CityName] [-d CityName] [-n CityName]"
 }
@@ -33,7 +37,7 @@ while getopts ":a:ld:n:hu" flag; do
         add_city_to_db $city_name
         ;;
     l)
-        cat $database_path
+        list_cities
         ;;
     d)
         # filename=$OPTARG
