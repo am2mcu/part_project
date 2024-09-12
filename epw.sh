@@ -7,7 +7,7 @@ database_path=$cities_path/cities.txt
 
 fetch_weather() {
     local city_name=$1
-    echo "$(date): $(curl -s wttr.in/$city_name?format='%l:+%t+%c%w+%h\n')"
+    echo "$(date): $(curl -s wttr.in/$city_name?format='%l:+%t+%C%w+%h\n')"
     # TODO: Country is not shown
     # TODO: return error status when internet connection is not available
 }
