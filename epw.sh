@@ -54,7 +54,7 @@ while getopts ":a:ld:n:hu" flag; do
         ;;
     n)
         city_name=$OPTARG
-        curl wttr.in/$city_name
+        fetch_weather $city_name
         ;;
     h)
         print_usage
