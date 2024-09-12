@@ -78,9 +78,7 @@ done
 # the first invocation of getopts exits the while loop.
 if [[ $# == 0 ]]; then
     print_usage
-fi
-
-if [[ $no_flag == "true" ]]; then
+elif [[ $no_flag == "true" ]]; then
     city_name=$1
-    curl wttr.in/$city_name
+    fetch_weather $city_name
 fi
