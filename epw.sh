@@ -6,10 +6,19 @@ cities_path=$main_path/db
 database_path=$cities_path/cities.txt
 
 fetch_weather() {
-    local CityName=$1
-    echo "$(date): $(curl -s wttr.in/$CityName?format='%l:+%t+%c%w+%h\n')"
+    local city_name=$1
+    echo "$(date): $(curl -s wttr.in/$city_name?format='%l:+%t+%c%w+%h\n')"
     # TODO: Country is not shown
     # TODO: return error status when internet connection is not available
+}
+
+add_city_to_db() {
+    local city_name=$1
+    if grep -qi "\b$city_name\b" $database_path; then
+        echo "$city_name exists!"
+    else
+        echo $city_name >> $database_path
+    fi
 }
 
 print_usage() {
@@ -20,7 +29,8 @@ no_flag=true
 while getopts ":a:ld:n:hu" flag; do
     case $flag in
     a)
-        # TODO
+        city_name=$OPTARG
+        add_city_to_db $city_name
         ;;
     l)
         cat $database_path
@@ -30,8 +40,8 @@ while getopts ":a:ld:n:hu" flag; do
         # TODO
         ;;
     n)
-        CityName=$OPTARG
-        curl wttr.in/$CityName
+        city_name=$OPTARG
+        curl wttr.in/$city_name
         ;;
     h)
         print_usage
@@ -58,6 +68,6 @@ if [[ $# == 0 ]]; then
 fi
 
 if [[ $no_flag == "true" ]]; then
-    CityName=$1
-    curl wttr.in/$CityName
+    city_name=$1
+    curl wttr.in/$city_name
 fi
