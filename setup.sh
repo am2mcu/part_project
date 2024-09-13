@@ -16,7 +16,7 @@ add_user() {
 }
 
 set_mirror() {
-    local repos=$(cat <<-END
+    local official_repos=$(cat <<-END
 deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
 deb-src http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
     
@@ -27,11 +27,13 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
 deb-src http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
 END
     )
-    repos=$(get_input "Custom repos? [yes]" "Official Debian Repos")
+    repos=$(get_input "Enter [yes] for custom repositories" "Official Repositories")
     if [[ "${repos,,}" == "yes" ]]; then
         /usr/bin/nano /tmp/repos_input.tmp
         repos=$(cat /tmp/repos_input.tmp)
         rm /tmp/repos_input.tmp
+    else
+        repos=$official_repos
     fi
 
     local sources_list_path=/etc/apt/sources.list
