@@ -1,8 +1,8 @@
 #!/bin/bash
 
 add_user() {
-    local username="part"
-    useradd $username -m -G sudo
+    local user="part"
+    useradd $user -m -G sudo
 }
 
 set_mirror() {
@@ -91,6 +91,34 @@ ntp_config() {
     systemctl restart ntp
 }
 
+cron_config() {
+    local main_path=/opt/data
+
+    local user=root
+    local processes_num_path=$main_path/${user}_processes_num
+
+    local open_ports_path=$main_path/open_ports
+
+    local uid=1000
+    local users_list_path=$main_path/users_list_${uid}
+
+    mkdir -p $main_path
+    touch -a $processes_num_path $open_ports_path $users_list_path
+
+    local cron_time="*/2 * * * *"
+
+    (crontab -l; \
+        echo "$cron_time ps -u $user -U $user --no-headers | wc -l >> $processes_num_path" \
+    ) | crontab -
+
+    (crontab -l; \
+        echo "$cron_time netstat -tulpn | grep LISTEN >> $open_ports_path" \
+    ) | crontab -
+
+    (crontab -l; \
+        echo "$cron_time awk -F: '(\$3 < $uid) {print \$1}' /etc/passwd >> $users_list_path" \
+    ) | crontab -
+}
 
 main() {
     # Program Flow
@@ -98,7 +126,9 @@ main() {
     
     # ssh_config
 
-    ntp_config
+    # ntp_config
+
+    cron_config
 }
 
 
