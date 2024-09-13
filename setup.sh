@@ -34,7 +34,7 @@ initial_setup() {
     update_packages
 }
 
-ssh_install_package() {
+ssh_install() {
     apt -qq install openssh-server
 }
 
@@ -63,7 +63,7 @@ ssh_block_root_login() {
 ssh_config() {
     local ssh_config_path=/etc/ssh/sshd_config
 
-    ssh_install_package
+    ssh_install
 
     ssh_change_port $ssh_config_path
 
@@ -72,6 +72,10 @@ ssh_config() {
     ssh_block_root_login $ssh_config_path
 
     systemctl restart ssh.service
+}
+
+ntp_config() {
+
 }
 
 
