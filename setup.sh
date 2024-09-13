@@ -11,7 +11,9 @@ log() {
     (( ${log_levels[$log_priority]} < ${log_levels[$LOG_LEVEL]} )) && return 2
 
     # Do not include INFO in logs
-    [[ "$log_priority" == "INFO" ]] && echo -e "[*] ${log_msg}\n" || echo -e "${log_priority}: ${log_msg}\n"
+    [[ "$log_priority" == "INFO" ]] \
+        && echo -e "[*] ${log_msg}\n" \
+        || echo -e "${log_priority}: ${log_msg}\n"
 }
 
 get_input() {
@@ -39,7 +41,9 @@ add_user() {
         user=$default_user
     fi
 
-    useradd $user -m -G sudo && log "INFO" "User $user created" || log "ERROR" "Couldn't create user $user"
+    useradd $user -m -G sudo \
+        && log "INFO" "User $user created" \
+        || log "ERROR" "Couldn't create user $user"
 }
 
 set_mirror() {
@@ -66,7 +70,9 @@ END
     local sources_list_path=/etc/apt/sources.list
 
     log "INFO" "Setting new repositories..."
-    echo "$repos" > $sources_list_path && log "INFO" "Repositories set" || log "ERROR" "Couldn't set repositories"
+    echo "$repos" > $sources_list_path \
+        && log "INFO" "Repositories set" \
+        || log "ERROR" "Couldn't set repositories"
 }
 
 check_network() {
@@ -97,7 +103,9 @@ install_package() {
 
     if check_network; then
         log "INFO" "Installing ${package_name}..."
-        apt -y -qq install $package_name && log "INFO" "Installed ${package_name}" || log "ERROR" "Couldn't install ${package_name}"
+        apt -y -qq install $package_name \
+            && log "INFO" "Installed ${package_name}" \
+            || log "ERROR" "Couldn't install ${package_name}"
     else
         log "ERROR" "No internet connection"
     fi
@@ -107,7 +115,9 @@ ssh_change_port() {
     local ssh_config_path=$1
     local port_num=$2
 
-    sed -i "/\bPort\b/c\Port $port_num" $ssh_config_path
+    sed -i "/\bPort\b/c\Port $port_num" $ssh_config_path \
+        && log "INFO" "SSH port changed to $ssh_port_num" \
+        || log "ERROR" "Couldn't change SSH port"
 }
 
 ssh_change_login_msg() {
@@ -121,12 +131,16 @@ ssh_change_login_msg() {
         -e '/\bUsePAM\b/c\UsePAM no' \
         -e '/\bPrintMotd\b/c\PrintMotd yes' \
         -e '/\bPrintLastLog\b/c\PrintLastLog no' \
-        $ssh_config_path
+        $ssh_config_path \
+            && log "INFO" "SSH login message changed to $login_msg" \
+            || log "ERROR" "Couldn't change SSH login message"
 }
 
 ssh_block_root_login() {
     # Include '#' to avoid undesired changes
-    sed -i '/#PermitRootLogin\b/c\PermitRootLogin no' $1
+    sed -i '/#PermitRootLogin\b/c\PermitRootLogin no' $1 \
+        && log "INFO" "Blocked SSH root login" \
+        || log "ERROR" "Couldn't block SSH root login"
 }
 
 ssh_config() {
@@ -135,6 +149,7 @@ ssh_config() {
 
     install_package $package_name
 
+    log "INFO" "Configuring SSH..."
     ssh_port_num=$(get_input "SSH port number" 2324) # not local - used in nftables_config()
     ssh_change_port $ssh_config_path $ssh_port_num
 
@@ -143,7 +158,9 @@ ssh_config() {
 
     ssh_block_root_login $ssh_config_path
 
-    systemctl restart ssh
+    systemctl restart ssh \
+        && log "INFO" "Configured SSH" \
+        || log "ERROR" "Couldn't run SSH service"
 }
 
 ntp_add_server() {
@@ -259,8 +276,6 @@ main() {
     # cron_config
 
     # nftables_config
-
-    # install_package "openssh-server"
 }
 
 
