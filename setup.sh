@@ -249,7 +249,9 @@ nft_add_rule() {
     local chain_name=$2
     local rule=$3
 
-    nft add rule $table_name $chain_name $rule
+    nft add rule $table_name $chain_name $rule \
+        && log "INFO" "Added new rule $rule" \
+        || log "ERROR" "Couldn't add rule"
 }
 
 nftables_config() {
@@ -269,7 +271,9 @@ nftables_config() {
     nft_add_rule $table_name $input_chain "tcp dport $nft_accept_port accept"
 
     # make table permanently
-    nft list table $table_name >> /etc/nftables.conf
+    nft list table $table_name >> /etc/nftables.conf \
+        && log "INFO" "Configured nftables" \
+        || log "ERROR" "Couldn't config new ruleset for nftables"
 }
 
 main() {
@@ -284,7 +288,7 @@ main() {
 
     # ntp_config
 
-    cron_config
+    # cron_config
 
     # nftables_config
 }
