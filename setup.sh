@@ -167,7 +167,9 @@ ntp_add_server() {
     local ntp_config_path=$1
     local ntp_server=$2
 
-    sed -i "/.*Specify.*NTP servers/a server $ntp_server" $ntp_config_path
+    sed -i "/.*Specify.*NTP servers/a server $ntp_server" $ntp_config_path \
+        && log "INFO" "Setnew NTP server" \
+        || log "ERROR" "Couldn't set NTP server"
 }
 
 ntp_config() {
@@ -176,10 +178,13 @@ ntp_config() {
     
     install_package $package_name
 
+    log "INFO" "Configuring NTP..."
     local ntp_server=$(get_input "NTP server" "pool.ntp.org")
     ntp_add_server $ntp_config_path $ntp_server
 
-    systemctl restart ntp
+    systemctl restart ntp \
+        && log "INFO" "Configured NTP" \
+        || log "ERROR" "Couldn't run NTP service"
 }
 
 cron_add_task() {
