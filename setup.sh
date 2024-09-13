@@ -7,10 +7,10 @@ log() {
     local log_priority=$1
     local log_msg=$2
 
-    [[ ${levels[$log_priority]} ]] || return 1
-    (( ${levels[$log_priority]} < ${levels[$script_logging_level]} )) && return 2
+    [[ ${log_levels[$log_priority]} ]] || return 1
+    (( ${log_levels[$log_priority]} < ${log_levels[$LOG_LEVEL]} )) && return 2
 
-    echo "${log_priority}: ${log_message}"
+    echo "${log_priority}: ${log_msg}"
 }
 
 get_input() {
