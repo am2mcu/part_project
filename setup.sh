@@ -168,10 +168,7 @@ nftables_config() {
     nft_add_rule $table_name $output_chain "ip daddr deb.debian.org counter"
     
     nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
-    nft_add_rule $table_name $input_chain "tcp dport 2324 accept"
-
-
-    nft list table $table_name
+    nft_add_rule $table_name $input_chain "tcp dport $port_num accept"
 }
 
 main() {
@@ -184,7 +181,7 @@ main() {
 
     # cron_config
 
-    nftables_config
+    # nftables_config
 }
 
 
