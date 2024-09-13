@@ -1,5 +1,18 @@
 #!/bin/bash
 
+LOG_LEVEL="INFO"
+
+log() {
+    declare -A log_levels=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3 [CRIT]=4)
+    local log_priority=$1
+    local log_msg=$2
+
+    [[ ${levels[$log_priority]} ]] || return 1
+    (( ${levels[$log_priority]} < ${levels[$script_logging_level]} )) && return 2
+
+    echo "${log_priority}: ${log_message}"
+}
+
 get_input() {
     local input_message=$1
     local default_value=$2
@@ -209,8 +222,6 @@ main() {
     # cron_config
 
     # nftables_config
-
-    nftables_config
 }
 
 
