@@ -91,6 +91,15 @@ ntp_config() {
     systemctl restart ntp
 }
 
+cron_add_task() {
+    local cron_time=$1
+    local cron_command=$2
+
+    (crontab -l; \
+        echo "$cron_time $cron_command" \
+    ) | crontab -
+}
+
 cron_config() {
     local main_path=/opt/data
 
@@ -106,18 +115,17 @@ cron_config() {
     touch -a $processes_num_path $open_ports_path $users_list_path
 
     local cron_time="*/2 * * * *"
+    cron_add_task \
+        "$cron_time" \
+        "ps -u $user -U $user --no-headers | wc -l >> $processes_num_path"
 
-    (crontab -l; \
-        echo "$cron_time ps -u $user -U $user --no-headers | wc -l >> $processes_num_path" \
-    ) | crontab -
+    cron_add_task \
+        "$cron_time" \
+        "netstat -tulpn | grep LISTEN >> $open_ports_path"
 
-    (crontab -l; \
-        echo "$cron_time netstat -tulpn | grep LISTEN >> $open_ports_path" \
-    ) | crontab -
-
-    (crontab -l; \
-        echo "$cron_time awk -F: '(\$3 < $uid) {print \$1}' /etc/passwd >> $users_list_path" \
-    ) | crontab -
+    cron_add_task \
+        "$cron_time" \
+        "awk -F: '(\$3 < $uid) {print \$1}' /etc/passwd >> $users_list_path"
 }
 
 main() {
@@ -128,7 +136,7 @@ main() {
 
     # ntp_config
 
-    cron_config
+    # cron_config
 }
 
 
