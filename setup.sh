@@ -34,8 +34,9 @@ initial_setup() {
     update_packages
 }
 
-ssh_install() {
-    apt -qq install openssh-server
+install_package() {
+    local package_name=$1
+    apt -y -qq install $package_name
 }
 
 ssh_change_port() {
@@ -61,9 +62,10 @@ ssh_block_root_login() {
 }
 
 ssh_config() {
+    local package_name="openssh-server"
     local ssh_config_path=/etc/ssh/sshd_config
 
-    ssh_install
+    install_package $package_name
 
     ssh_change_port $ssh_config_path
 
@@ -75,7 +77,11 @@ ssh_config() {
 }
 
 ntp_config() {
+    local package_name="ntp"
+    
+    install_package $package_name
 
+    # TODO: change addr
 }
 
 
@@ -84,6 +90,8 @@ main() {
     # initial_setup
     
     # ssh_config
+
+    ntp_config
 }
 
 
