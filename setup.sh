@@ -58,7 +58,7 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
 deb-src http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
 END
     )
-    repos=$(get_input "Enter [yes] for custom repositories" "Official Repositories")
+    repos=$(get_input "Enter \"yes\" for custom repositories" "Official Repositories")
     if [[ "${repos,,}" == "yes" ]]; then
         /usr/bin/nano /tmp/repos_input.tmp
         repos=$(cat /tmp/repos_input.tmp)
@@ -276,21 +276,39 @@ nftables_config() {
         || log "ERROR" "Couldn't config new ruleset for nftables"
 }
 
+allow_task() {
+    local task_name=$1
+    local user_input=$(get_input "Run task \"$task_name\" [yes/no]" "yes")
+    if [[ ! "${user_input,,}" == "yes" ]]; then
+        return 1
+    fi
+}
+
 main() {
     if [[ $(id -u) != 0 ]]; then
         log "ERROR" "Run as root"
         return 1
     fi
 
-    # initial_setup
+    if allow_task "Initial setup"; then
+        initial_setup
+    fi
     
-    # ssh_config
+    if allow_task "SSH config"; then
+        ssh_config
+    fi
 
-    # ntp_config
+    if allow_task "NTP config"; then
+        ntp_config
+    fi
 
-    # cron_config
+    if allow_task "Cronjob config"; then
+        cron_config
+    fi
 
-    # nftables_config
+    if allow_task "Nftables config"; then
+        nftables_config
+    fi
 }
 
 
