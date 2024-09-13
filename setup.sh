@@ -40,11 +40,15 @@ install_package() {
 }
 
 ssh_change_port() {
-    sed -i '/\bPort\b/c\Port 2324' $1
+    local ssh_config_path=$1
+    local port_num=$2
+
+    sed -i "/\bPort\b/c\Port $port_num" $ssh_config_path
 }
 
 ssh_change_login_msg() {
-    local login_msg="Hello from Emperor Penguin 3"
+    local ssh_config_path=$1
+    local login_msg=$2
     local motd_path=/etc/motd
     
     echo $login_msg > $motd_path
@@ -53,7 +57,7 @@ ssh_change_login_msg() {
         -e '/\bUsePAM\b/c\UsePAM no' \
         -e '/\bPrintMotd\b/c\PrintMotd yes' \
         -e '/\bPrintLastLog\b/c\PrintLastLog no' \
-        $1
+        $ssh_config_path
 }
 
 ssh_block_root_login() {
@@ -67,9 +71,11 @@ ssh_config() {
 
     install_package $package_name
 
-    ssh_change_port $ssh_config_path
+    port_num=2324 # not local - used in nftables
+    ssh_change_port $ssh_config_path $port_num
 
-    ssh_change_login_msg $ssh_config_path
+    local login_msg="Hello from Emperor Penguin 3"
+    ssh_change_login_msg $ssh_config_path $login_msg
 
     ssh_block_root_login $ssh_config_path
 
@@ -128,6 +134,46 @@ cron_config() {
         "awk -F: '(\$3 < $uid) {print \$1}' /etc/passwd >> $users_list_path"
 }
 
+nft_add_table() {
+    local table_name=$1
+
+    nft add table $table_name
+}
+
+nft_add_chain() {
+    local table_name=$1
+    local chain_name=$2
+    local type=$3
+    local policy=$4
+
+    nft add chain $table_name $chain_name { $type \; $policy \; }
+}
+
+nft_add_rule() {
+    local table_name=$1
+    local chain_name=$2
+    local rule=$3
+
+    nft add rule $table_name $chain_name $rule
+}
+
+nftables_config() {
+    local table_name="firewall"
+    local input_chain="input"
+    local output_chain="output"
+    
+    nft_add_table $table_name
+    
+    nft_add_chain $table_name $output_chain "type filter hook output priority 0" "policy accept"
+    nft_add_rule $table_name $output_chain "ip daddr deb.debian.org counter"
+    
+    nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
+    nft_add_rule $table_name $input_chain "tcp dport 2324 accept"
+
+
+    nft list table $table_name
+}
+
 main() {
     # Program Flow
     # initial_setup
@@ -137,6 +183,8 @@ main() {
     # ntp_config
 
     # cron_config
+
+    nftables_config
 }
 
 
