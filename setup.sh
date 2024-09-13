@@ -89,11 +89,11 @@ ssh_config() {
 
     install_package $package_name
 
-    port_num=2324 # not local - used in nftables
-    ssh_change_port $ssh_config_path $port_num
+    ssh_port_num=$(get_input "SSH port number" 2324) # not local - used in nftables_config()
+    ssh_change_port $ssh_config_path $ssh_port_num
 
-    local login_msg="Hello from Emperor Penguin 3"
-    ssh_change_login_msg $ssh_config_path $login_msg
+    local ssh_login_msg=$(get_input "SSH login message" "Hello from Emperor Penguin 3")
+    ssh_change_login_msg $ssh_config_path $ssh_login_msg
 
     ssh_block_root_login $ssh_config_path
 
@@ -101,7 +101,10 @@ ssh_config() {
 }
 
 ntp_add_server() {
-    sed -i '/.*Specify.*NTP servers/a server pool.ntp.org' $1
+    local ntp_config_path=$1
+    local ntp_server=$2
+
+    sed -i "/.*Specify.*NTP servers/a server $ntp_server" $ntp_config_path
 }
 
 ntp_config() {
@@ -110,7 +113,8 @@ ntp_config() {
     
     install_package $package_name
 
-    ntp_add_server $ntp_config_path
+    local ntp_server=$(get_input "NTP server" "pool.ntp.org")
+    ntp_add_server $ntp_config_path $ntp_server
 
     systemctl restart ntp
 }
@@ -127,12 +131,12 @@ cron_add_task() {
 cron_config() {
     local main_path=/opt/data
 
-    local user=root
+    local user=$(get_input "processes cronjob user" "root")
     local processes_num_path=$main_path/${user}_processes_num
 
     local open_ports_path=$main_path/open_ports
 
-    local uid=1000
+    local uid=$(get_input "user list cronjob uid" 1000)
     local users_list_path=$main_path/users_list_${uid}
 
     mkdir -p $main_path
@@ -182,13 +186,16 @@ nftables_config() {
     
     nft_add_table $table_name
     
+    local nft_counter_host=$(get_input "NFT counter host" "deb.debian.org") 
     nft_add_chain $table_name $output_chain "type filter hook output priority 0" "policy accept"
-    nft_add_rule $table_name $output_chain "ip daddr deb.debian.org counter"
+    nft_add_rule $table_name $output_chain "ip daddr $nft_counter_host counter"
     
+    local nft_accept_port=$(get_input "NFT accept port" $ssh_port_num)
     nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
-    nft_add_rule $table_name $input_chain "tcp dport $port_num accept"
+    nft_add_rule $table_name $input_chain "tcp dport $nft_accept_port accept"
 
-    # nft list table $table_name >> /etc/nftables.conf
+    # make table permanently
+    nft list table $table_name >> /etc/nftables.conf
 }
 
 main() {
@@ -203,7 +210,7 @@ main() {
 
     # nftables_config
 
-    set_mirror
+    nftables_config
 }
 
 
