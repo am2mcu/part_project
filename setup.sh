@@ -10,7 +10,8 @@ log() {
     [[ ${log_levels[$log_priority]} ]] || return 1
     (( ${log_levels[$log_priority]} < ${log_levels[$LOG_LEVEL]} )) && return 2
 
-    echo "${log_priority}: ${log_msg}"
+    # Do not include INFO in logs
+    [[ "$log_priority" == "INFO" ]] && echo "${log_msg}" || echo "${log_priority}: ${log_msg}"
 }
 
 get_input() {
@@ -21,11 +22,23 @@ get_input() {
     echo "${user_input:-$default_value}"
 }
 
-add_user() {
-    local user="part"
+validate_username() {
+    local user=$1
+    if [[ ! "$user" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        return 1
+    fi
+}
 
-    user=$(get_input "Username" $user)
-    useradd $user -m -G sudo
+add_user() {
+    local default_user="part"
+
+    local user=$(get_input "Username" $default_user)
+    if ! validate_username $user; then
+        log "WARN" "Invalid username"
+        user=$default_user
+    fi
+
+    useradd $user -m -G sudo && log "INFO" "User $user created" || log "ERROR" "Couldn't create user $user"
 }
 
 set_mirror() {
@@ -222,6 +235,8 @@ main() {
     # cron_config
 
     # nftables_config
+
+    add_user
 }
 
 
