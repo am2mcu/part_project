@@ -11,7 +11,7 @@ log() {
     (( ${log_levels[$log_priority]} < ${log_levels[$LOG_LEVEL]} )) && return 2
 
     # Do not include INFO in logs
-    [[ "$log_priority" == "INFO" ]] && echo "${log_msg}" || echo "${log_priority}: ${log_msg}"
+    [[ "$log_priority" == "INFO" ]] && echo -e "[*] ${log_msg}\n" || echo -e "${log_priority}: ${log_msg}\n"
 }
 
 get_input() {
@@ -32,6 +32,7 @@ validate_username() {
 add_user() {
     local default_user="part"
 
+    log "INFO" "Creating new user..."
     local user=$(get_input "Username" $default_user)
     if ! validate_username $user; then
         log "WARN" "Invalid username"
@@ -64,12 +65,25 @@ END
 
     local sources_list_path=/etc/apt/sources.list
 
-    echo "$repos" > $sources_list_path
+    log "INFO" "Setting new repositories..."
+    echo "$repos" > $sources_list_path && log "INFO" "Repositories set" || log "ERROR" "Couldn't set repositories"
+}
+
+check_network() {
+    if ! ping -q -c1 google.com &>/dev/null; then
+        return 1
+    fi
 }
 
 update_packages() {
-    apt update
-    apt upgrade
+    if check_network; then
+        log "INFO" "Update & upgrading packages..."
+        apt -y -qq update
+        apt -y -qq upgrade
+        log "INFO" "Packages are up to date"
+    else
+        log "ERROR" "No internet connection"
+    fi
 }
 
 initial_setup() {
@@ -80,7 +94,13 @@ initial_setup() {
 
 install_package() {
     local package_name=$1
-    apt -y -qq install $package_name
+
+    if check_network; then
+        log "INFO" "Installing ${package_name}..."
+        apt -y -qq install $package_name && log "INFO" "Installed ${package_name}" || log "ERROR" "Couldn't install ${package_name}"
+    else
+        log "ERROR" "No internet connection"
+    fi
 }
 
 ssh_change_port() {
@@ -225,7 +245,11 @@ nftables_config() {
 }
 
 main() {
-    # Program Flow
+    if [[ $(id -u) != 0 ]]; then
+        log "ERROR" "Run as root"
+        return 1
+    fi
+
     # initial_setup
     
     # ssh_config
@@ -236,7 +260,7 @@ main() {
 
     # nftables_config
 
-    add_user
+    # install_package "openssh-server"
 }
 
 
