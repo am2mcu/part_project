@@ -73,15 +73,22 @@ ssh_config() {
 
     ssh_block_root_login $ssh_config_path
 
-    systemctl restart ssh.service
+    systemctl restart ssh
+}
+
+ntp_add_server() {
+    sed -i '/.*Specify.*NTP servers/a server pool.ntp.org' $1
 }
 
 ntp_config() {
     local package_name="ntp"
+    local ntp_config_path=/etc/ntpsec/ntp.conf
     
     install_package $package_name
 
-    # TODO: change addr
+    ntp_add_server $ntp_config_path
+
+    systemctl restart ntp
 }
 
 
