@@ -23,11 +23,20 @@ END
     echo "$official_repos" > $sources_list_path
 }
 
+update_packages() {
+    apt update
+    apt upgrade
+}
+
+initial_setup() {
+    add_user
+    set_mirror
+    update_packages
+}
 
 main() {
     # Program Flow
-    # initial_setup
-    set_mirror
+    initial_setup
 }
 
 
