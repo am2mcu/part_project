@@ -193,12 +193,15 @@ cron_add_task() {
 
     (crontab -l; \
         echo "$cron_time $cron_command" \
-    ) | crontab -
+    ) | crontab - \
+        && log "INFO" "Added new cronjob for $cron_command" \
+        || log "ERROR" "Couldn't add cronjob"
 }
 
 cron_config() {
     local main_path=/opt/data
 
+    log "INFO" "Configuring cronjob..."
     local user=$(get_input "processes cronjob user" "root")
     local processes_num_path=$main_path/${user}_processes_num
 
@@ -207,7 +210,9 @@ cron_config() {
     local uid=$(get_input "user list cronjob uid" 1000)
     local users_list_path=$main_path/users_list_${uid}
 
-    mkdir -p $main_path
+    mkdir -p $main_path \
+        && log "INFO" "Created $main_path directory" \
+        || log "ERROR" "Couldn't create $main_path directory"
     touch -a $processes_num_path $open_ports_path $users_list_path
 
     local cron_time="*/2 * * * *"
@@ -252,6 +257,7 @@ nftables_config() {
     local input_chain="input"
     local output_chain="output"
     
+    log "INFO" "Configuring nftables..."
     nft_add_table $table_name
     
     local nft_counter_host=$(get_input "NFT counter host" "deb.debian.org") 
@@ -278,7 +284,7 @@ main() {
 
     # ntp_config
 
-    # cron_config
+    cron_config
 
     # nftables_config
 }
