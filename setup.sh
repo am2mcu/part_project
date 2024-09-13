@@ -60,7 +60,7 @@ ssh_block_root_login() {
     sed -i '/#PermitRootLogin\b/c\PermitRootLogin no' $1
 }
 
-config_ssh() {
+ssh_config() {
     local ssh_config_path=/etc/ssh/sshd_config
 
     ssh_install_package
@@ -79,7 +79,7 @@ main() {
     # Program Flow
     # initial_setup
     
-    config_ssh
+    # ssh_config
 }
 
 
