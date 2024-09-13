@@ -1,12 +1,22 @@
 #!/bin/bash
 
+get_input() {
+    local input_message=$1
+    local default_value=$2
+
+    read -p "$input_message (default: $default_value): " user_input
+    echo "${user_input:-$default_value}"
+}
+
 add_user() {
     local user="part"
+
+    user=$(get_input "Username" $user)
     useradd $user -m -G sudo
 }
 
 set_mirror() {
-    local official_repos=$(cat <<-END
+    local repos=$(cat <<-END
 deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
 deb-src http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
     
@@ -17,10 +27,16 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
 deb-src http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
 END
     )
+    repos=$(get_input "Custom repos? [yes]" "Official Debian Repos")
+    if [[ "${repos,,}" == "yes" ]]; then
+        /usr/bin/nano /tmp/repos_input.tmp
+        repos=$(cat /tmp/repos_input.tmp)
+        rm /tmp/repos_input.tmp
+    fi
 
     local sources_list_path=/etc/apt/sources.list
 
-    echo "$official_repos" > $sources_list_path
+    echo "$repos" > $sources_list_path
 }
 
 update_packages() {
@@ -169,6 +185,8 @@ nftables_config() {
     
     nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
     nft_add_rule $table_name $input_chain "tcp dport $port_num accept"
+
+    # nft list table $table_name >> /etc/nftables.conf
 }
 
 main() {
@@ -182,6 +200,8 @@ main() {
     # cron_config
 
     # nftables_config
+
+    set_mirror
 }
 
 
