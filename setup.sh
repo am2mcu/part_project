@@ -107,7 +107,8 @@ install_package() {
             && log "INFO" "Installed ${package_name}" \
             || log "ERROR" "Couldn't install ${package_name}"
     else
-        log "ERROR" "No internet connection"
+        log "ERROR" "No internet connection (Couldn't install $package_name)"
+        return 1
     fi
 }
 
@@ -147,7 +148,10 @@ ssh_config() {
     local package_name="openssh-server"
     local ssh_config_path=/etc/ssh/sshd_config
 
-    install_package $package_name
+    if ! install_package $package_name; then
+        log "ERROR" "Skipping task"
+        return 1
+    fi
 
     log "INFO" "Configuring SSH..."
     ssh_port_num=$(get_input "SSH port number" 2324) # not local - used in nftables_config()
@@ -176,7 +180,10 @@ ntp_config() {
     local package_name="ntp"
     local ntp_config_path=/etc/ntpsec/ntp.conf
     
-    install_package $package_name
+    if ! install_package $package_name; then
+        log "ERROR" "Skipping task"
+        return 1
+    fi
 
     log "INFO" "Configuring NTP..."
     local ntp_server=$(get_input "NTP server" "pool.ntp.org")
