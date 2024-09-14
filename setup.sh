@@ -37,7 +37,7 @@ add_user() {
     log "INFO" "Creating new user..."
     local user=$(get_input "Username" $default_user)
     if ! validate_username $user; then
-        log "WARN" "Invalid username"
+        log "WARN" "Invalid username (will carry on with $default_user)"
         user=$default_user
     fi
 
