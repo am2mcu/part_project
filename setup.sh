@@ -31,6 +31,13 @@ validate_username() {
     fi
 }
 
+validate_port_num() {
+    local port_num=$1
+    if [[ ! "$port_num" =~ ^[0-9]+$ ]] || [[ $port_num -lt 1 ]] || [[ $port_num -gt 65535 ]]; then
+        return 1
+    fi
+}
+
 add_user() {
     local default_user="part"
 
@@ -154,7 +161,13 @@ ssh_config() {
     fi
 
     log "INFO" "Configuring SSH..."
-    ssh_port_num=$(get_input "SSH port number" 2324) # not local - used in nftables_config()
+
+    local default_port_num=2324
+    ssh_port_num=$(get_input "SSH port number" $default_port_num) # not local - used in nftables_config()
+    if ! validate_port_num $ssh_port_num; then
+        log "WARN" "Invalid port number (will carry on with $default_port_num)"
+        ssh_port_num=$default_port_num
+    fi
     ssh_change_port $ssh_config_path $ssh_port_num
 
     local ssh_login_msg=$(get_input "SSH login message" "Hello from Emperor Penguin 3")
@@ -281,6 +294,10 @@ nftables_config() {
     
     ssh_port_num="${ssh_port_num:-22}"
     local nft_accept_port=$(get_input "NFT accept port" $ssh_port_num)
+    if ! validate_port_num $nft_accept_port; then
+        log "WARN" "Invalid port number (will carry on with $ssh_port_num)"
+        nft_accept_port=$ssh_port_num
+    fi
     nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
     nft_add_rule $table_name $input_chain "tcp dport $nft_accept_port accept"
 
