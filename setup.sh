@@ -192,6 +192,9 @@ ntp_add_server() {
 ntp_config() {
     local package_name="ntp"
     local ntp_config_path=/etc/ntpsec/ntp.conf
+    if [[ ! -f "$ntp_config_path" ]]; then
+        ntp_config_path=/etc/ntp.conf
+    fi
     
     if ! install_package $package_name; then
         log "ERROR" "Skipping task"
