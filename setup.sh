@@ -168,7 +168,7 @@ ntp_add_server() {
     local ntp_server=$2
 
     sed -i "/.*Specify.*NTP servers/a server $ntp_server" $ntp_config_path \
-        && log "INFO" "Setnew NTP server" \
+        && log "INFO" "Set new NTP server" \
         || log "ERROR" "Couldn't set NTP server"
 }
 
