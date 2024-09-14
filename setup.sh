@@ -318,6 +318,10 @@ allow_task() {
     fi
 }
 
+print_divider_line() {
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+}
+
 main() {
     if [[ $(id -u) != 0 ]]; then
         log "ERROR" "Run as root"
@@ -326,22 +330,27 @@ main() {
 
     if allow_task "Initial setup"; then
         initial_setup
+        print_divider_line
     fi
     
     if allow_task "SSH config"; then
         ssh_config
+        print_divider_line
     fi
 
     if allow_task "NTP config"; then
         ntp_config
+        print_divider_line
     fi
 
     if allow_task "Cronjob config"; then
         cron_config
+        print_divider_line
     fi
 
     if allow_task "Nftables config"; then
         nftables_config
+        print_divider_line
     fi
 }
 
