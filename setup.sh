@@ -21,7 +21,7 @@ get_input() {
     local default_value=$2
 
     read -p "$input_message (default: $default_value): " user_input
-    echo "${user_input:-$default_value}"
+    echo -e "${user_input:-$default_value}\n"
 }
 
 validate_username() {
@@ -267,6 +267,12 @@ nftables_config() {
     local output_chain="output"
     
     log "INFO" "Configuring nftables..."
+    if ! check_network; then
+        log "ERROR" "No internet connection"
+        log "ERROR" "Skipping task (Problem resolving hosts)"
+        return 1
+    fi
+
     nft_add_table $table_name
     
     local nft_counter_host=$(get_input "NFT counter host" "deb.debian.org") 
