@@ -266,6 +266,7 @@ nftables_config() {
     nft_add_chain $table_name $output_chain "type filter hook output priority 0" "policy accept"
     nft_add_rule $table_name $output_chain "ip daddr $nft_counter_host counter"
     
+    ssh_port_num="${ssh_port_num:-22}"
     local nft_accept_port=$(get_input "NFT accept port" $ssh_port_num)
     nft_add_chain $table_name $input_chain "type filter hook input priority 0" "policy drop"
     nft_add_rule $table_name $input_chain "tcp dport $nft_accept_port accept"
